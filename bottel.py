@@ -10,6 +10,12 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 classes = model.names
 model.to(device)
 cap = cv2.VideoCapture(0)
+frame_width = int(cap.get(3))
+frame_height = int(cap.get(4))
+frame_size = (frame_width,frame_height)
+fps = int(cap.get(cv2.CAP_PROP_FPS))
+fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+output = cv2.VideoWriter('output3.mp4', fourcc, fps, frame_size)
 x1,y1,x2,y2 = 0,0,0,0
 with mp_hands.Hands(
     min_detection_confidence=0.5,
@@ -23,9 +29,9 @@ with mp_hands.Hands(
         x_shape, y_shape = frame.shape[1], frame.shape[0]
         frame1 = [frame]
         det = model(frame1)
-
+        #print(det.xyxyn[0])
         labels, cord = det.xyxyn[0][:, -1], det.xyxyn[0][:, :-1]
-            
+    
         p = y_shape * (20/100)
         y1 = y_shape - p
         x2 = x_shape
@@ -36,10 +42,10 @@ with mp_hands.Hands(
         for i in range(len(cord)):
             bbox=cord[i]
             c=labels[i]
-            print(labels[i])
-            print(classes[int(c)])
+           
             if int(c)==39:
                 x1_, y1_, x2_, y2_ = int(bbox[0] * x_shape), int(bbox[1] * y_shape), int(bbox[2] * x_shape), int(bbox[3] * y_shape)
+                
                 bgr = (0, 255, 0)
                 pik.append(y2_)
                 cv2.rectangle(frame, (x1_, y1_), (x2_, y2_), bgr, 2)
@@ -56,9 +62,11 @@ with mp_hands.Hands(
         
         cv2.putText(img = frame,text = flag,org = (20, 20),fontFace = cv2.FONT_HERSHEY_DUPLEX,fontScale = 1.0,color = (125, 246, 55),thickness = 3)
         cv2.line(frame, start_point, end_point, (255,0,0), 2)
+        output.write(frame)
         cv2.imshow("frame",frame)
 
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
     cap.release()
+    output.release()
     cv2.destroyAllWindows()

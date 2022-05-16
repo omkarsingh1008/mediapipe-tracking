@@ -3,7 +3,13 @@ import mediapipe as mp
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
-cap = cv2.VideoCapture("test.mp4")
+cap = cv2.VideoCapture(0)
+frame_width = int(cap.get(3))
+frame_height = int(cap.get(4))
+frame_size = (frame_width,frame_height)
+fps = int(cap.get(cv2.CAP_PROP_FPS))
+fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+output = cv2.VideoWriter('output2.mp4', fourcc, fps, frame_size)
 with mp_hands.Hands(
     min_detection_confidence=0.5,
     min_tracking_confidence=0.5) as hands:
@@ -29,7 +35,11 @@ with mp_hands.Hands(
       for hand_landmarks in results.multi_hand_landmarks:
         mp_drawing.draw_landmarks(
             image, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+    output.write(image)
     cv2.imshow('MediaPipe Hands', image)
     if cv2.waitKey(5) & 0xFF == 27:
       break
 cap.release()
+output.release()
+
+cv2.destroyAllWindows()
