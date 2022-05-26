@@ -1,3 +1,4 @@
+from re import X
 from charset_normalizer import detect
 import torch
 import cv2
@@ -21,10 +22,10 @@ with mp_hands.Hands(
     min_detection_confidence=0.5,
     min_tracking_confidence=0.5) as hands:
     while True:
-        flag = "pick up"
+        flag = "not pick up"
         _,frame = cap.read()
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame.flags.writeable = False
+        #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        #frame.flags.writeable = False
         results = hands.process(frame)
         x_shape, y_shape = frame.shape[1], frame.shape[0]
         frame1 = [frame]
@@ -32,12 +33,9 @@ with mp_hands.Hands(
         #print(det.xyxyn[0])
         labels, cord = det.xyxyn[0][:, -1], det.xyxyn[0][:, :-1]
     
-        p = y_shape * (20/100)
-        y1 = y_shape - p
-        x2 = x_shape
-        y2 = y1
-        start_point = (x1,int(y1))
-        end_point = (x2,int(y2))
+        X = int(x_shape * (50/100))
+        start_point = (X,0)
+        end_point = (X,y_shape)
         pik=[]
         for i in range(len(cord)):
             bbox=cord[i]
@@ -47,21 +45,20 @@ with mp_hands.Hands(
                 x1_, y1_, x2_, y2_ = int(bbox[0] * x_shape), int(bbox[1] * y_shape), int(bbox[2] * x_shape), int(bbox[3] * y_shape)
                 
                 bgr = (0, 255, 0)
-                pik.append(y2_)
+                pik.append(x1_)
                 cv2.rectangle(frame, (x1_, y1_), (x2_, y2_), bgr, 2)
-
         for i in pik:
-            if i >=y2:
-                flag = "not pick up"
-        frame.flags.writeable = True
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                mp_drawing.draw_landmarks(
-                frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
-        
+            if i >=X:
+                flag = "pick up"
+
+
+        center_start = (int((start_point[0]+end_point[0])/2),int((start_point[1]+end_point[1])/2))
+        center_end = (int(end_point[0]/2),y_shape)
+
         cv2.putText(img = frame,text = flag,org = (20, 20),fontFace = cv2.FONT_HERSHEY_DUPLEX,fontScale = 1.0,color = (125, 246, 55),thickness = 3)
         cv2.line(frame, start_point, end_point, (255,0,0), 2)
+        #cv2.line(frame, center_start, center_end, (255,0,0), 2)
+        #cv2.circle(frame, center_start, 5, (0,0,0), -1)
         output.write(frame)
         cv2.imshow("frame",frame)
 

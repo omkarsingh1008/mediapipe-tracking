@@ -17,16 +17,17 @@ def main(filename_path,source):
     exec_net,input_layer,output_layer,size = load(filename_path,num_sources=2)
     tracker = CentroidTracker(max_lost=0, tracker_output_format='mot_challenge')
     tracker1 = CentroidTracker(max_lost=0, tracker_output_format='mot_challenge')
-    vid = cv2.VideoCapture(int(source[0]))
+    vid = cv2.VideoCapture((source[0]))
     frame_width = int(vid.get(3))
     frame_height = int(vid.get(4))
     frame_size = (frame_width,frame_height)
     fps = int(vid.get(cv2.CAP_PROP_FPS))
     fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-    output = cv2.VideoWriter('output4.mp4', fourcc, fps, frame_size)
+    output = cv2.VideoWriter('output5.mp4', fourcc, fps, frame_size)
     
     tracks_id={}
     tracklets_id={}
+    draw_p={"draw":None}
     prev_frame_time = 0
     new_frame_time = 0
     x1,y1,x2,y2 = 0,0,0,0
@@ -58,12 +59,9 @@ def main(filename_path,source):
     
         labels, cord = det.xyxyn[0][:, -1], det.xyxyn[0][:, :-1]
             
-        p = y_shape * (20/100)
-        y1 = y_shape - p
-        x2 = x_shape
-        y2 = y1
-        start_point = (x1,int(y1))
-        end_point = (x2,int(y2))
+        X = int(x_shape * (50/100))
+        start_point = (X,0)
+        end_point = (X,y_shape)
         pik=[]
         for i in range(len(cord)):
             bbox=cord[i]
@@ -71,22 +69,23 @@ def main(filename_path,source):
             if int(c)==39:
                 x1_, y1_, x2_, y2_ = int(bbox[0] * x_shape), int(bbox[1] * y_shape), int(bbox[2] * x_shape), int(bbox[3] * y_shape)
                 bgr = (0, 255, 0)
-                pik.append(y2_)
+                pik.append(x1_)
                 cv2.rectangle(frame, (x1_, y1_), (x2_, y2_), bgr, 2)
 
         for i in pik:
-            if i >=y2:
+            if i <=X:
                 flag = "not pick up"
         cv2.rectangle(frame, (0,0), (700,50), (0, 0, 0), -1)
         for id,bbox in tracks_draw.items():
             cv2.putText(frame, str(id), (bbox[0],bbox[3]), 1, cv2.FONT_HERSHEY_DUPLEX, (0, 0, 255), 3)
             cv2.rectangle(frame, bbox[:2], bbox[2:], (0, 255, 0), 1)
-        draw_p={}
+        #draw_p={}
         if  flag == "pick up":
             for id,bbox in tracks_draw.items():
-                draw_p[id]="pick up"
+                draw_p["draw"]=str(id)+":-"+"pick up"
         else:
             font = cv2.FONT_HERSHEY_SIMPLEX
+            draw_p["draw"]=None
             cv2.putText(frame, "not pick up", (10, 30), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
         new_frame_time = time.time()
         fps = 1/(new_frame_time-prev_frame_time)
@@ -97,11 +96,12 @@ def main(filename_path,source):
         font = cv2.FONT_HERSHEY_SIMPLEX
         #cv2.rectangle(frame, (0,0), (700,50), (0, 0, 0), -1)
         for id,f in draw_p.items():
-            cv2.putText(frame, str(id)+":-"+f, (10, 30), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
+            cv2.putText(frame, f, (10, 30), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
         
         cv2.line(frame, start_point, end_point, (255,0,0), 2)
         cv2.putText(frame, "Fps:-"+str(fps), (500, 30), font, 1, (255, 255, 255), 1, cv2.LINE_AA)
         output.write(frame)
+        frame = cv2.resize(frame, (800,800))
         cv2.imshow('Multi camera tracking', frame)
         
         if cv2.waitKey(1) & 0xFF == ord('q'):

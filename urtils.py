@@ -204,5 +204,26 @@ def postprocess_yolov5(x_shape, y_shape,results):
             scores_bottel.append(float(scores[i]))
     return boxes_person,scores_person,labels_person,boxes_bottel,scores_bottel,labels_bottel
 
-    
-    
+def pointInRect(point,rect):
+    x1, y1, x2, y2 = rect
+    _,x, y = point
+    if (x1 < x and x < x2):
+        if (y1 < y and y < y2):
+            return "True"
+    return "False"
+
+def check_id(bottle,keypoint,tracks_draw):
+      pick_id={}
+      x_b,y_b = bottle[0][2:]
+      keypoint_20 = keypoint[20]
+      keypoint_19 = keypoint[19]
+      dis_20 = np.sqrt((x_b-keypoint_20[1])**2+(y_b-keypoint_20[2])**2)
+      dis_19 = np.sqrt((x_b-keypoint_19[1])**2+(y_b-keypoint_19[2])**2)
+      if dis_20 <=100 or dis_19 <=100:
+          for id,bbox in tracks_draw.items():
+              flag = pointInRect(keypoint[0],bbox)
+              pick_id[id] = flag
+              print("*"*50)
+              print(flag)
+              print("*"*50)
+      return pick_id
