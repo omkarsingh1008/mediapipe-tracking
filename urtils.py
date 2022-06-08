@@ -206,7 +206,7 @@ def postprocess_yolov5(x_shape, y_shape,results):
 
 def pointInRect(point,rect):
     x1, y1, x2, y2 = rect
-    _,x, y = point
+    x, y,_ = point
     if (x1 < x and x < x2):
         if (y1 < y and y < y2):
             return "True"
@@ -215,15 +215,35 @@ def pointInRect(point,rect):
 def check_id(bottle,keypoint,tracks_draw):
       pick_id={}
       x_b,y_b = bottle[0][2:]
-      keypoint_20 = keypoint[20]
-      keypoint_19 = keypoint[19]
-      dis_20 = np.sqrt((x_b-keypoint_20[1])**2+(y_b-keypoint_20[2])**2)
-      dis_19 = np.sqrt((x_b-keypoint_19[1])**2+(y_b-keypoint_19[2])**2)
-      if dis_20 <=100 or dis_19 <=100:
+      keypoint_10 = keypoint[10]
+      keypoint_9 = keypoint[9]
+      dis_10 = np.sqrt((x_b-keypoint_10[0])**2+(y_b-keypoint_10[1])**2)
+      dis_9 = np.sqrt((x_b-keypoint_9[0])**2+(y_b-keypoint_9[1])**2)
+      print(dis_10)
+      print(dis_9)
+      if dis_10 <=250 or dis_9 <=250:
           for id,bbox in tracks_draw.items():
-              flag = pointInRect(keypoint[0],bbox)
+              flag = pointInRect(keypoint[1],bbox)
               pick_id[id] = flag
               print("*"*50)
               print(flag)
               print("*"*50)
       return pick_id
+    
+
+def check_id_m(bottle,keypoints,tracks_draw):
+    pick_id={}
+    for i,bol in enumerate(bottle):
+        x_b,y_b = bol[2:]
+        for keypoint in keypoints:
+            keypoint_10 = keypoint[10]
+            keypoint_9 = keypoint[9]
+            dis_10 = np.sqrt((x_b-keypoint_10[0])**2+(y_b-keypoint_10[1])**2)
+            dis_9 = np.sqrt((x_b-keypoint_9[0])**2+(y_b-keypoint_9[1])**2)
+            for id,bbox in tracks_draw.items():
+              flag = pointInRect(keypoint[1],bbox)
+              pick_id[str(id)+str(i)] = flag
+              print("*"*50)
+              print(flag)
+              print("*"*50)
+    return pick_id

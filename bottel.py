@@ -1,4 +1,3 @@
-from re import X
 from charset_normalizer import detect
 import torch
 import cv2
@@ -46,6 +45,9 @@ with mp_hands.Hands(
                 
                 bgr = (0, 255, 0)
                 pik.append(x1_)
+                #cv2.circle(frame,(x2_,y1_),50,(0,0,0),-1)
+                center_right = (int((x2_+x2_)/2),int((y2_+y1_)/2))
+                cv2.circle(frame,center_right,50,(0,0,0),1)
                 cv2.rectangle(frame, (x1_, y1_), (x2_, y2_), bgr, 2)
         for i in pik:
             if i >=X:

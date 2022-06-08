@@ -4,7 +4,7 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 # For webcam input:
-cap = cv2.VideoCapture("4.mp4")
+cap = cv2.VideoCapture("Autonomous2.mp4")
 with mp_pose.Pose(
     min_detection_confidence=0.5,
     min_tracking_confidence=0.5) as pose:
